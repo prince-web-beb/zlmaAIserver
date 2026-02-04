@@ -28,7 +28,7 @@ data class UserUsage(
 
 @Serializable
 enum class UserTier(val dailyLimit: Int) {
-    FREE(20),
-    PRO(200),
-    ENTERPRISE(Int.MAX_VALUE)
+    FREE(10),        // 10 messages/day for free users
+    PRO(100),        // 100 messages/day for pro users
+    ENTERPRISE(1000) // 1000 messages/day for enterprise
 }

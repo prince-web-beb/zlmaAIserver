@@ -2,6 +2,7 @@ package com.mychatapp.routes
 
 import com.mychatapp.plugins.FirebaseUser
 import com.mychatapp.plugins.ForbiddenException
+import com.mychatapp.services.AdminService
 import com.mychatapp.services.PaystackService
 import com.mychatapp.services.SubscriptionPlan
 import io.ktor.http.*
@@ -79,7 +80,7 @@ fun Route.subscriptionRoutes() {
 
                 val result = PaystackService.initializePayment(
                     userId = user.uid,
-                    email = user.email,
+                    email = user.email ?: throw IllegalStateException("Email required for payment"),
                     planId = request.planId,
                     callbackUrl = request.callbackUrl
                 )
@@ -151,7 +152,7 @@ fun Route.subscriptionRoutes() {
                 if (user == null || !user.isAdmin) {
                     throw ForbiddenException("Admin access required")
                 }
-                val plans = PaystackService.getActivePlans() // TODO: Include inactive
+                val plans = AdminService.getAllPlans()
                 call.respond(HttpStatusCode.OK, plans)
             }
 

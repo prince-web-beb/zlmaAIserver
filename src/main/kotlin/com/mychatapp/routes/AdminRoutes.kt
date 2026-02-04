@@ -141,6 +141,26 @@ fun Route.adminRoutes() {
                 AdminService.updateSystemSettings(settings)
                 call.respond(HttpStatusCode.OK, mapOf("updated" to true))
             }
+
+            // Revenue stats
+            get("/revenue") {
+                val user = call.principal<FirebaseUser>()
+                if (user == null || !user.isAdmin) {
+                    throw ForbiddenException("Admin access required")
+                }
+                val revenue = AdminService.getRevenueStats()
+                call.respond(HttpStatusCode.OK, revenue)
+            }
+
+            // All subscriptions (for admin view)
+            get("/subscriptions/all") {
+                val user = call.principal<FirebaseUser>()
+                if (user == null || !user.isAdmin) {
+                    throw ForbiddenException("Admin access required")
+                }
+                val subscriptions = AdminService.getAllSubscriptions()
+                call.respond(HttpStatusCode.OK, subscriptions)
+            }
         }
     }
 }

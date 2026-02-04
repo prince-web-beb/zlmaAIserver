@@ -19,6 +19,9 @@ fun Application.configureRouting() {
         // Subscription & Payment routes
         subscriptionRoutes()
 
+        // Mobile API routes (for Android/iOS apps)
+        mobileRoutes()
+
         // Admin routes (require admin role)
         adminRoutes()
     }

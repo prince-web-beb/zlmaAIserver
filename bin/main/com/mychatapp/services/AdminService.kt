@@ -272,4 +272,92 @@ object AdminService {
     suspend fun updateSystemSettings(settings: Map<String, String>) = withContext(Dispatchers.IO) {
         settingsCollection.document("system").set(settings, com.google.cloud.firestore.SetOptions.merge()).get()
     }
+
+    suspend fun getRevenueStats(): Map<String, Any> = withContext(Dispatchers.IO) {
+        val subscriptionsCollection = Firebase.firestore.collection("subscriptions")
+        val transactionsCollection = Firebase.firestore.collection("transactions")
+
+        val now = System.currentTimeMillis()
+        val monthStart = LocalDate.now().withDayOfMonth(1)
+            .atStartOfDay()
+            .toEpochSecond(java.time.ZoneOffset.UTC) * 1000
+
+        // Get all successful transactions
+        val allTransactions = transactionsCollection
+            .whereEqualTo("status", "success")
+            .get().get()
+
+        var totalRevenue = 0L
+        var monthlyRevenue = 0L
+
+        for (doc in allTransactions.documents) {
+            val amount = doc.getLong("amount") ?: 0
+            val verifiedAt = doc.getLong("verifiedAt") ?: 0
+
+            totalRevenue += amount
+            if (verifiedAt >= monthStart) {
+                monthlyRevenue += amount
+            }
+        }
+
+        // Get active subscriptions
+        val activeSubscriptions = subscriptionsCollection
+            .whereEqualTo("status", "active")
+            .whereGreaterThan("endDate", now)
+            .get().get()
+            .size()
+
+        mapOf(
+            "totalRevenue" to totalRevenue,
+            "monthlyRevenue" to monthlyRevenue,
+            "activeSubscriptions" to activeSubscriptions,
+            "currency" to "NGN"
+        )
+    }
+
+    suspend fun getAllSubscriptions(): List<Map<String, Any?>> = withContext(Dispatchers.IO) {
+        val subscriptionsCollection = Firebase.firestore.collection("subscriptions")
+
+        val docs = subscriptionsCollection
+            .orderBy("startDate", com.google.cloud.firestore.Query.Direction.DESCENDING)
+            .limit(100)
+            .get().get()
+
+        docs.documents.map { doc ->
+            mapOf(
+                "id" to doc.getString("id"),
+                "userId" to doc.getString("userId"),
+                "planId" to doc.getString("planId"),
+                "planName" to doc.getString("planName"),
+                "tier" to doc.getString("tier"),
+                "status" to doc.getString("status"),
+                "amount" to doc.getLong("amount"),
+                "currency" to doc.getString("currency"),
+                "startDate" to doc.getLong("startDate"),
+                "endDate" to doc.getLong("endDate")
+            )
+        }
+    }
+
+    suspend fun getAllPlans(): List<Map<String, Any?>> = withContext(Dispatchers.IO) {
+        val plansCollection = Firebase.firestore.collection("subscription_plans")
+
+        val docs = plansCollection.get().get()
+
+        docs.documents.map { doc ->
+            mapOf(
+                "id" to (doc.getString("id") ?: doc.id),
+                "name" to doc.getString("name"),
+                "tier" to doc.getString("tier"),
+                "price" to doc.getLong("price"),
+                "currency" to doc.getString("currency"),
+                "interval" to doc.getString("interval"),
+                "features" to doc.get("features"),
+                "messagesPerDay" to doc.getLong("messagesPerDay"),
+                "canUploadImages" to doc.getBoolean("canUploadImages"),
+                "canUploadFiles" to doc.getBoolean("canUploadFiles"),
+                "isActive" to doc.getBoolean("isActive")
+            )
+        }
+    }
 }
