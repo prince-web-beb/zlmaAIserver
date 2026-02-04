@@ -47,6 +47,20 @@ fun Application.configureFirebase() {
 }
 
 object Firebase {
-    val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
-    val firestore by lazy { FirestoreClient.getFirestore() }
+    private var _initialized = false
+    
+    val isInitialized: Boolean
+        get() = FirebaseApp.getApps().isNotEmpty()
+    
+    val auth: FirebaseAuth
+        get() {
+            if (!isInitialized) throw IllegalStateException("Firebase not initialized")
+            return FirebaseAuth.getInstance()
+        }
+    
+    val firestore: com.google.cloud.firestore.Firestore
+        get() {
+            if (!isInitialized) throw IllegalStateException("Firebase not initialized")
+            return FirestoreClient.getFirestore()
+        }
 }

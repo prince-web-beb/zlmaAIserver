@@ -6,7 +6,7 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
-        // Health check
+        // Health check - always available
         healthRoutes()
         
         // Public routes
@@ -16,13 +16,13 @@ fun Application.configureRouting() {
         chatRoutes()
         userRoutes()
         
+        // Admin routes (require admin role)
+        adminRoutes()
+        
         // Subscription & Payment routes
         subscriptionRoutes()
 
         // Mobile API routes (for Android/iOS apps)
         mobileRoutes()
-
-        // Admin routes (require admin role)
-        adminRoutes()
     }
 }
