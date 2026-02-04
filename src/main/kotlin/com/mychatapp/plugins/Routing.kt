@@ -16,6 +16,9 @@ fun Application.configureRouting() {
         chatRoutes()
         userRoutes()
         
+        // Subscription & Payment routes
+        subscriptionRoutes()
+
         // Admin routes (require admin role)
         adminRoutes()
     }
