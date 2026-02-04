@@ -9,11 +9,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object AdminService {
-    private val usersCollection = Firebase.firestore.collection("users")
-    private val conversationsCollection = Firebase.firestore.collection("conversations")
-    private val usageLogsCollection = Firebase.firestore.collection("usage_logs")
-    private val settingsCollection = Firebase.firestore.collection("settings")
-    
+    private val usersCollection by lazy { Firebase.firestore.collection("users") }
+    private val conversationsCollection by lazy { Firebase.firestore.collection("conversations") }
+    private val usageLogsCollection by lazy { Firebase.firestore.collection("usage_logs") }
+    private val settingsCollection by lazy { Firebase.firestore.collection("settings") }
+
     suspend fun getDashboardStats(): DashboardStats = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         val todayStart = LocalDate.now().atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC) * 1000
@@ -70,7 +70,7 @@ object AdminService {
         )
     }
     
-    suspend fun getAllUsers(page: Int, limit: Int): Map<String, Any> = withContext(Dispatchers.IO) {
+    suspend fun getAllUsers(page: Int, limit: Int): PaginatedUsers = withContext(Dispatchers.IO) {
         val offset = (page - 1) * limit
         
         val query = usersCollection
@@ -80,30 +80,30 @@ object AdminService {
             .get().get()
         
         val users = query.documents.map { doc ->
-            mapOf(
-                "uid" to (doc.getString("uid") ?: doc.id),
-                "email" to doc.getString("email"),
-                "displayName" to doc.getString("displayName"),
-                "tier" to doc.getString("tier"),
-                "totalMessages" to doc.getLong("totalMessages"),
-                "isBanned" to doc.getBoolean("isBanned"),
-                "createdAt" to doc.getLong("createdAt"),
-                "lastActiveAt" to doc.getLong("lastActiveAt")
+            AdminUserInfo(
+                uid = doc.getString("uid") ?: doc.id,
+                email = doc.getString("email"),
+                displayName = doc.getString("displayName"),
+                tier = doc.getString("tier") ?: "free",
+                totalMessages = doc.getLong("totalMessages") ?: 0,
+                isBanned = doc.getBoolean("isBanned") ?: false,
+                createdAt = doc.getLong("createdAt"),
+                lastActiveAt = doc.getLong("lastActiveAt")
             )
         }
         
         val total = usersCollection.get().get().size()
         
-        mapOf(
-            "users" to users,
-            "page" to page,
-            "limit" to limit,
-            "total" to total,
-            "totalPages" to ((total + limit - 1) / limit)
+        PaginatedUsers(
+            users = users,
+            page = page,
+            limit = limit,
+            total = total,
+            totalPages = ((total + limit - 1) / limit)
         )
     }
     
-    suspend fun getUserDetails(userId: String): Map<String, Any?> = withContext(Dispatchers.IO) {
+    suspend fun getUserDetails(userId: String): UserDetailsResponse = withContext(Dispatchers.IO) {
         val userDoc = usersCollection.document(userId).get().get()
         
         // Get user's conversations count
@@ -123,20 +123,20 @@ object AdminService {
             it.getLong("totalTokens")?.toInt() ?: 0 
         }
         
-        mapOf(
-            "uid" to userId,
-            "email" to userDoc.getString("email"),
-            "displayName" to userDoc.getString("displayName"),
-            "avatarUrl" to userDoc.getString("avatarUrl"),
-            "tier" to userDoc.getString("tier"),
-            "messagesUsedToday" to userDoc.getLong("messagesUsedToday"),
-            "totalMessages" to userDoc.getLong("totalMessages"),
-            "isBanned" to userDoc.getBoolean("isBanned"),
-            "banReason" to userDoc.getString("banReason"),
-            "createdAt" to userDoc.getLong("createdAt"),
-            "lastActiveAt" to userDoc.getLong("lastActiveAt"),
-            "conversationsCount" to conversationsCount,
-            "recentTokenUsage" to totalTokens
+        UserDetailsResponse(
+            uid = userId,
+            email = userDoc.getString("email"),
+            displayName = userDoc.getString("displayName"),
+            avatarUrl = userDoc.getString("avatarUrl"),
+            tier = userDoc.getString("tier") ?: "free",
+            isAdmin = false,
+            isBanned = userDoc.getBoolean("isBanned") ?: false,
+            banReason = userDoc.getString("banReason"),
+            totalMessages = userDoc.getLong("totalMessages") ?: 0,
+            conversationsCount = conversationsCount,
+            totalTokensUsed = totalTokens,
+            createdAt = userDoc.getLong("createdAt"),
+            lastActiveAt = userDoc.getLong("lastActiveAt")
         )
     }
     

@@ -98,9 +98,9 @@ object PaystackService {
         }
     }
 
-    private val subscriptionsCollection = Firebase.firestore.collection("subscriptions")
-    private val plansCollection = Firebase.firestore.collection("subscription_plans")
-    private val transactionsCollection = Firebase.firestore.collection("transactions")
+    private val subscriptionsCollection by lazy { Firebase.firestore.collection("subscriptions") }
+    private val plansCollection by lazy { Firebase.firestore.collection("subscription_plans") }
+    private val transactionsCollection by lazy { Firebase.firestore.collection("transactions") }
 
     /**
      * Initialize a payment transaction

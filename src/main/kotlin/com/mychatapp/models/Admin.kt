@@ -79,3 +79,41 @@ data class RateLimits(
     val proPerMinute: Int = 30,
     val enterprisePerMinute: Int = 100
 )
+
+@Serializable
+data class PaginatedUsers(
+    val users: List<AdminUserInfo>,
+    val page: Int,
+    val limit: Int,
+    val total: Int,
+    val totalPages: Int
+)
+
+@Serializable
+data class AdminUserInfo(
+    val uid: String,
+    val email: String? = null,
+    val displayName: String? = null,
+    val tier: String? = "free",
+    val totalMessages: Long? = 0,
+    val isBanned: Boolean? = false,
+    val createdAt: Long? = null,
+    val lastActiveAt: Long? = null
+)
+
+@Serializable
+data class UserDetailsResponse(
+    val uid: String,
+    val email: String? = null,
+    val displayName: String? = null,
+    val avatarUrl: String? = null,
+    val tier: String? = "free",
+    val isAdmin: Boolean = false,
+    val isBanned: Boolean = false,
+    val banReason: String? = null,
+    val totalMessages: Long = 0,
+    val conversationsCount: Int = 0,
+    val totalTokensUsed: Int = 0,
+    val createdAt: Long? = null,
+    val lastActiveAt: Long? = null
+)

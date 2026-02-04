@@ -10,8 +10,8 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 
 object UserService {
-    private val usersCollection = Firebase.firestore.collection("users")
-    
+    private val usersCollection by lazy { Firebase.firestore.collection("users") }
+
     suspend fun createUserProfile(uid: String, email: String, displayName: String): UserProfile = withContext(Dispatchers.IO) {
         val profile = UserProfile(
             uid = uid,

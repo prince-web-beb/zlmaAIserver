@@ -34,8 +34,8 @@ object MobileApiService {
         }
     }
 
-    private val conversationsCollection = Firebase.firestore.collection("conversations")
-    private val usersCollection = Firebase.firestore.collection("users")
+    private val conversationsCollection by lazy { Firebase.firestore.collection("conversations") }
+    private val usersCollection by lazy { Firebase.firestore.collection("users") }
 
     @Serializable
     data class MobileChatRequest(

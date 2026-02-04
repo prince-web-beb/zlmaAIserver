@@ -75,8 +75,8 @@ object ChatService {
         }
     }
     
-    private val conversationsCollection = Firebase.firestore.collection("conversations")
-    
+    private val conversationsCollection by lazy { Firebase.firestore.collection("conversations") }
+
     suspend fun sendMessage(
         userId: String,
         messages: List<ChatMessage>,

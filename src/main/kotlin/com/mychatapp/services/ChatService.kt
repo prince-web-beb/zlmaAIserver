@@ -75,14 +75,33 @@ object ChatService {
         }
     }
     
-    private val conversationsCollection = Firebase.firestore.collection("conversations")
-    
+    private val conversationsCollection by lazy { Firebase.firestore.collection("conversations") }
+
+    // Map Zlma model IDs to actual OpenRouter model IDs (internal only)
+    private val modelMapping = mapOf(
+        "zlma-pro" to "openai/gpt-4o",
+        "zlma-fast" to "openai/gpt-4o-mini",
+        "zlma-creative" to "anthropic/claude-3.5-sonnet",
+        "zlma-research" to "google/gemini-pro-1.5",
+        "zlma-open" to "meta-llama/llama-3.1-70b-instruct",
+        // Also accept the real model IDs for backward compatibility
+        "openai/gpt-4o" to "openai/gpt-4o",
+        "openai/gpt-4o-mini" to "openai/gpt-4o-mini"
+    )
+
+    private fun resolveModel(zlmaModelId: String): String {
+        return modelMapping[zlmaModelId] ?: "openai/gpt-4o" // Default to pro model
+    }
+
     suspend fun sendMessage(
         userId: String,
         messages: List<ChatMessage>,
         model: String,
         conversationId: String?
     ): ChatResponse = withContext(Dispatchers.IO) {
+        // Resolve the actual model from Zlma model ID
+        val actualModel = resolveModel(model)
+
         // Inject Zlma AI system prompt at the beginning
         val messagesWithPersona = listOf(
             OpenRouterMessage("system", ZlmaAIPersona.getSystemPrompt())
@@ -95,7 +114,7 @@ object ChatService {
             header("HTTP-Referer", "https://zlmaai.com")
             header("X-Title", "Zlma AI")
             setBody(OpenRouterRequest(
-                model = model,
+                model = actualModel,
                 messages = messagesWithPersona
             ))
         }
@@ -210,33 +229,33 @@ object ChatService {
     fun getAvailableModels(): List<AvailableModel> {
         return listOf(
             AvailableModel(
-                id = "openai/gpt-4o",
-                name = "GPT-4o",
-                description = "Most capable GPT-4 model",
+                id = "zlma-pro",
+                name = "Zlma Pro",
+                description = "Our most capable model",
                 contextLength = 128000
             ),
             AvailableModel(
-                id = "openai/gpt-4o-mini",
-                name = "GPT-4o Mini",
-                description = "Fast and affordable",
+                id = "zlma-fast",
+                name = "Zlma Fast",
+                description = "Fast and efficient",
                 contextLength = 128000
             ),
             AvailableModel(
-                id = "anthropic/claude-3.5-sonnet",
-                name = "Claude 3.5 Sonnet",
-                description = "Anthropic's most capable model",
+                id = "zlma-creative",
+                name = "Zlma Creative",
+                description = "Best for creative tasks",
                 contextLength = 200000
             ),
             AvailableModel(
-                id = "google/gemini-pro-1.5",
-                name = "Gemini Pro 1.5",
-                description = "Google's advanced model",
+                id = "zlma-research",
+                name = "Zlma Research",
+                description = "Extended context for research",
                 contextLength = 1000000
             ),
             AvailableModel(
-                id = "meta-llama/llama-3.1-70b-instruct",
-                name = "Llama 3.1 70B",
-                description = "Meta's open source model",
+                id = "zlma-open",
+                name = "Zlma Open",
+                description = "Open and versatile",
                 contextLength = 131072
             )
         )

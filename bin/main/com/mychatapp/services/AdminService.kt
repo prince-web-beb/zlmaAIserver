@@ -9,11 +9,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object AdminService {
-    private val usersCollection = Firebase.firestore.collection("users")
-    private val conversationsCollection = Firebase.firestore.collection("conversations")
-    private val usageLogsCollection = Firebase.firestore.collection("usage_logs")
-    private val settingsCollection = Firebase.firestore.collection("settings")
-    
+    private val usersCollection by lazy { Firebase.firestore.collection("users") }
+    private val conversationsCollection by lazy { Firebase.firestore.collection("conversations") }
+    private val usageLogsCollection by lazy { Firebase.firestore.collection("usage_logs") }
+    private val settingsCollection by lazy { Firebase.firestore.collection("settings") }
+
     suspend fun getDashboardStats(): DashboardStats = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         val todayStart = LocalDate.now().atStartOfDay().toEpochSecond(java.time.ZoneOffset.UTC) * 1000

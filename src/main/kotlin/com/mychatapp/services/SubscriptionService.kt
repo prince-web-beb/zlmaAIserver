@@ -20,9 +20,9 @@ data class UserSubscriptionStatus(
 
 object SubscriptionService {
 
-    private val usersCollection = Firebase.firestore.collection("users")
-    private val subscriptionsCollection = Firebase.firestore.collection("subscriptions")
-    private val plansCollection = Firebase.firestore.collection("subscription_plans")
+    private val usersCollection by lazy { Firebase.firestore.collection("users") }
+    private val subscriptionsCollection by lazy { Firebase.firestore.collection("subscriptions") }
+    private val plansCollection by lazy { Firebase.firestore.collection("subscription_plans") }
 
     /**
      * Get user's current subscription status and permissions
