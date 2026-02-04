@@ -22,3 +22,5 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+gradle-8.5-bin.zip
