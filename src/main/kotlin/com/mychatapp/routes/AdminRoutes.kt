@@ -39,8 +39,16 @@ fun Route.adminRoutes() {
                 if (user == null || !user.isAdmin) {
                     throw ForbiddenException("Admin access required")
                 }
-                val stats = AdminService.getDashboardStats()
-                call.respond(HttpStatusCode.OK, stats)
+                try {
+                    val stats = AdminService.getDashboardStats()
+                    call.respond(HttpStatusCode.OK, stats)
+                } catch (e: Exception) {
+                    call.application.log.error("Failed to get dashboard stats", e)
+                    call.respond(HttpStatusCode.InternalServerError, mapOf(
+                        "error" to "Failed to load stats",
+                        "message" to (e.message ?: "Unknown error")
+                    ))
+                }
             }
             
             // Get all users (paginated)
@@ -49,10 +57,18 @@ fun Route.adminRoutes() {
                 if (user == null || !user.isAdmin) {
                     throw ForbiddenException("Admin access required")
                 }
-                val page = call.parameters["page"]?.toIntOrNull() ?: 1
-                val limit = call.parameters["limit"]?.toIntOrNull() ?: 20
-                val users = AdminService.getAllUsers(page, limit)
-                call.respond(HttpStatusCode.OK, users)
+                try {
+                    val page = call.parameters["page"]?.toIntOrNull() ?: 1
+                    val limit = call.parameters["limit"]?.toIntOrNull() ?: 20
+                    val users = AdminService.getAllUsers(page, limit)
+                    call.respond(HttpStatusCode.OK, users)
+                } catch (e: Exception) {
+                    call.application.log.error("Failed to get users", e)
+                    call.respond(HttpStatusCode.InternalServerError, mapOf(
+                        "error" to "Failed to load users",
+                        "message" to (e.message ?: "Unknown error")
+                    ))
+                }
             }
             
             // Get specific user details
